@@ -5,17 +5,14 @@ close all
 
 %% Variables
 se90V = strel('line', 8, 90);
-se0V = strel('line', 7, 0);
+se0V = strel('line', 8, 0);
 %dilation of borders
 se90I = strel('line', 2, 90);
 se0I = strel('line', 2, 0);
-% dilation cell
-se90 = strel('line', 4, 90);
-se0 = strel('line', 4, 0);
-
 b_cells_final = struct([]);
-Pixels_final = struct([]);
+corners_final = struct([]);
 k=0;
+kk=0;
 
 %% Determening paths and setting folders
 currdir = pwd;
@@ -41,9 +38,11 @@ for g=1:numel(files_tif)
     V = im2bw(V,1/255);
     % Vdil - dilated image of all vertices
     Vdil = imdilate(V, [se90V se0V]);
+    Vdil = imclearborder(Vdil);
     % Individual vertices as objects
     cc_Vdil = bwconncomp(Vdil);
-    L_Vdil = labelmatrix(cc_Vdil);
+    N_borders = labelmatrix(cc_Vdil);
+    s_borders = regionprops(cc_Vdil, Vdil, 'Centroid');
     I=imread('tracked_bd.png');
     I2=im2bw(I,1/255);
     I3 = imdilate(I2, [se90I se0I]);
@@ -55,50 +54,86 @@ for g=1:numel(files_tif)
     L_cells=labelmatrix(cc_cells);
     s_cells=regionprops(cc_cells, I_cells, 'Eccentricity', 'MajorAxisLength', 'MinorAxisLength', 'Orientation','PixelList','Centroid', 'Area');
     
-    b_cells = struct([]);
     Pixels = struct([]);
+    b_cells = struct([]);
     b_cells_flip = struct([]);
     b_cells_rot = struct([]);
-    Pixels_rot = struct([]);
     b_cells_rot2 = struct([]);
-    Pixels_rot2 = struct([]);
+    corners = struct([]);
+    corners_good = struct([]);
+    corners_good_rot = struct([]);
+    corners_good_rot2 = struct([]);
     
     for i=1:numel(s_cells)
         if s_cells(i).Area >200
             clear Center_mat_pixels Center_mat_border
+            Pixels{i} = s_cells(i).PixelList;
             
-            k=k+1;
             minima = min(s_cells(i).PixelList);
             Center = round(s_cells(i).Centroid);
-            Pixels{i} = s_cells(i).PixelList;
             b_cells{i} = bwtraceboundary(I_cells,[Pixels{i}(1,2),Pixels{i}(1,1)],'E',4);
             b_cells_flip{i} = [ b_cells{i}(:,2), b_cells{i}(:,1)];
-            %% Get boundaries and move objects to start with 1-1 coordinates
+            
+            %% Getting cornrers coordinates and selectin >30%
+            for c=1:length(b_cells{i})
+                corners{i}(c) = N_borders(b_cells{i}(c,1),b_cells{i}(c,2));
+            end
+            
+            
+            corners{i} = corners{i}(corners{i}~=0);
+            corners{i} = unique(corners{i});
+            corners_good{i} = zeros(1,2);
+            cc=0;
+            if length(corners{i})>2
+                corners{i} = [corners{i},corners{i}(1), corners{i}(2)];
+                CosTheta = zeros(1,length(corners{i})-2);
+                ThetaInDegrees = zeros(1,length(corners{i})-2);
+                for c=2:length(corners{i})-1
+                    vector1 = s_borders(corners{i}(c+1)).Centroid - s_borders(corners{i}(c)).Centroid;
+                    vector2 = s_borders(corners{i}(c-1)).Centroid - s_borders(corners{i}(c)).Centroid;
+                    CosTheta(c-1) = dot( vector1, vector2)/(norm( vector1)*norm( vector2));
+                    ThetaInDegrees(c-1) = acosd(CosTheta(c-1));
+                    
+                    if ThetaInDegrees(c-1)>30 && ThetaInDegrees(c-1)<150
+                        cc = cc+1;
+                        corners_good{i}(cc,:) = s_borders(corners{i}(c)).Centroid;
+                    end
+                end
+            end
+            
+            
+            %% Get boundaries and move objects to center at 0-0 coordinates
             R = [cosd(s_cells(i).Orientation) -sind(s_cells(i).Orientation); sind(s_cells(i).Orientation) cosd(s_cells(i).Orientation)];
             Center_mat_pixels = repmat([Center(1); Center(2)], 1, length(Pixels{i}))';
             Center_mat_border = repmat([Center(1); Center(2)], 1, length(b_cells_flip{i}))';
-            Pixels_rot{i} = Pixels{i} - Center_mat_pixels;
-            b_cells_rot{i} = b_cells_flip{i} - Center_mat_border;
-            Pixels_rot{i} = (R*Pixels_rot{i}')';
-            b_cells_rot{i} = (R*b_cells_rot{i}')';
             
-            %% Stretching
-            Pixels_rot2{i}(:,1) = Pixels_rot{i}(:,1)*100/s_cells(i).MajorAxisLength;
-            Pixels_rot2{i}(:,2) = Pixels_rot{i}(:,2)*100/s_cells(i).MinorAxisLength;
+            b_cells_rot{i} = b_cells_flip{i} - Center_mat_border;
+            b_cells_rot{i} = (R*b_cells_rot{i}')';
             b_cells_rot2{i}(:,1) = b_cells_rot{i}(:,1)*100/s_cells(i).MajorAxisLength;
             b_cells_rot2{i}(:,2) = b_cells_rot{i}(:,2)*100/s_cells(i).MinorAxisLength;
-            
-            
-            Pixels_final{k} = Pixels_rot2{i};
+            k=k+1;
             b_cells_final{k} = b_cells_rot2{i};
             
+            if length(corners_good{i})>2
+                Center_mat_border2 = repmat([Center(1); Center(2)], 1, length(corners_good{i}))';
+                corners_good_rot{i} = corners_good{i} - Center_mat_border2;
+                corners_good_rot{i} = (R*corners_good_rot{i}')';
+                corners_good_rot2{i}(:,1) = corners_good_rot{i}(:,1)*100/s_cells(i).MajorAxisLength;
+                corners_good_rot2{i}(:,2) = corners_good_rot{i}(:,2)*100/s_cells(i).MinorAxisLength;
+                
+                %% Stretching
+                if length(corners_good_rot2{i})>2
+                    kk=kk+1;
+                    corners_final{kk} = corners_good_rot2{i};
+                end
+                
+            end
             
-  
         end
     end
-    
-    
 end
+
+
 
 %% Making a distribution
 distribution = zeros (250,250);
@@ -110,8 +145,8 @@ for l=1:k
             distribution(round(b_cells_final{l}(m,2))+125,round(b_cells_final{l}(m,1))+125)+1;
     end
     
-     plot(b_cells_final{l}(:,1),b_cells_final{l}(:,2));
-     hold on
+    plot(b_cells_final{l}(:,1),b_cells_final{l}(:,2));
+    hold on
 end
 hold off
 
@@ -149,9 +184,9 @@ end
 % obtaining radial distribution by abgles
 for j=1:360
     distances_angle{j}= zeros(1,1);
-    for q=1:length(distance)      
+    for q=1:length(distance)
         if angle(q)<=j && angle(q)>j-1
-           distances_angle{j}=[distances_angle{j};distance(q)];  
+            distances_angle{j}=[distances_angle{j};distance(q)];
         end
     end
 end
@@ -195,7 +230,49 @@ end
 image5=figure;
 plot(1:360,intensity);
 print(image5, '-dtiff', '-r300', 'circle_intensity.tif');
+
+
+%% Corner distribution
+image6 = figure;
+for ll=1:kk
+scatter(corners_final{ll}(:,1),corners_final{ll}(:,2));
+hold on
+end
+hold off
+
+print(image6, '-dtiff', '-r300', 'all_corners.tif');
+corner_angle = zeros(1,1);
+distance_corner = zeros(1,1);
+pp=0;
+for l=1:kk
+    for m=1:length(corners_final{l})
+        pp=pp+1;
+        distance_corner(pp) = sqrt(corners_final{l}(m,2)*corners_final{l}(m,2) +...
+            corners_final{l}(m,1)*corners_final{l}(m,1));
+        
+        a = corners_final{l}(m,2)/distance_corner(pp);
+        b = corners_final{l}(m,1)/distance_corner(pp);
+        corner_angle(pp)= atan2d(a,b);
+        if corner_angle(pp)<0
+            corner_angle(pp)= corner_angle(pp)+360;
+        end
+    end
+end
+
+number_corners = zeros(1,360);
+for j=1:360
+    for q=1:length(corner_angle)
+        if corner_angle(q)<=j && corner_angle(q)>j-1
+            number_corners(j)=number_corners(j)+1;
+        end
+    end
+end
+image7=figure;
+plot(1:360,number_corners);
+print(image7, '-dtiff', '-r300', 'number_corners.tif');
+
 cd(currdir)
+
 close all;
 clear variables;
 clc
