@@ -94,7 +94,7 @@ for g=1:numel(files_tif)
                     CosTheta(c-1) = dot( vector1, vector2)/(norm( vector1)*norm( vector2));
                     ThetaInDegrees(c-1) = acosd(CosTheta(c-1));
                     
-                    if ThetaInDegrees(c-1)>30 && ThetaInDegrees(c-1)<150
+                    if ThetaInDegrees(c-1)>0 && ThetaInDegrees(c-1)<120
                         cc = cc+1;
                         corners_good{i}(cc,:) = s_borders(corners{i}(c)).Centroid;
                     end
