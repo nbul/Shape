@@ -165,7 +165,7 @@ distance = zeros(1,1);
 p=0;
 
 distances_angle = struct([]);
-% measuring angles and distances of each border point
+%% measuring angles and distances of each border point
 for l=1:k
     for m=1:length(b_cells_final{l})
         p=p+1;
@@ -181,7 +181,8 @@ for l=1:k
     end
 end
 
-% obtaining radial distribution by abgles
+
+% obtaining radial distribution by angles
 for j=1:360
     distances_angle{j}= zeros(1,1);
     for q=1:length(distance)
@@ -241,6 +242,8 @@ end
 hold off
 
 print(image6, '-dtiff', '-r300', 'all_corners.tif');
+
+
 corner_angle = zeros(1,1);
 distance_corner = zeros(1,1);
 pp=0;
@@ -258,18 +261,55 @@ for l=1:kk
         end
     end
 end
-
-number_corners = zeros(1,360);
-for j=1:360
+%% Number of corners by angle
+X2=180;
+bin_c2=2;
+number_corners = zeros(1,X2);
+for j=1:X2
     for q=1:length(corner_angle)
-        if corner_angle(q)<=j && corner_angle(q)>j-1
+        if corner_angle(q)<=j*bin_c2 && corner_angle(q)>j*bin_c2-bin_c2
             number_corners(j)=number_corners(j)+1;
         end
     end
 end
 image7=figure;
-plot(1:360,number_corners);
+plot(1:bin_c2:360,number_corners);
 print(image7, '-dtiff', '-r300', 'number_corners.tif');
+
+%% Distance of corners by angleN= zeros(360, 100);
+curve_corners = struct([]);
+gof_corners = struct([]);
+distance_temp = struct([]);
+
+X=180;
+bin_c=2;
+
+radius_corners = zeros(1, X);
+sigma1_corners = zeros(1, X);
+pvalue_corners = zeros(1, X);
+
+good_ring_corners = zeros(1, X);
+N_corners= zeros(X, 100);
+
+for i=1:X
+    distance_temp{i}= zeros(1,1);
+    for l=1:length(distance_corner)
+        if corner_angle(l)<=(i*bin_c) && corner_angle(l)>(i*bin_c-bin_c)
+            distance_temp{i} = [distance_temp{i}; distance_corner(l)];
+        end
+    end
+    distance_temp{i} =  distance_temp{i}(distance_temp{i}~=0);
+    [N_corners(i,:), bins] = histc(distance_temp{i},binrange);
+    binsnew = 1:length(N(i,:));
+    [curve_corners{i},gof_corners{i}] = fit(binsnew',N_corners(i,:)','gauss1');
+    radius_corners(i) = curve_corners{i}.b1;
+    sigma1_corners(i) = sqrt(curve_corners{i}.c1*curve_corners{i}.c1/2);
+    pvalue_corners(i) = gof_corners{i}.rsquare;
+end
+image8=figure;
+cd(sum_dir);
+plot(1:bin_c:360, radius_corners);
+print(image8, '-dtiff', '-r300', 'corners_radius.tif');
 
 cd(currdir)
 
