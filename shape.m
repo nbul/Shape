@@ -33,6 +33,9 @@ borderstat;
 %% Fitting and plotting information about corners
 cornerstat;
 
+%% Curvature
+curvature;
+
 cd(currdir);
 close all;
 clear variables;

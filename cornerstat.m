@@ -75,4 +75,8 @@ cd(sum_dir);
 plot(X2:X2:360, radius_corners);
 print(image8, '-dtiff', '-r300', 'corners_radius.tif');
 
-
+image9=figure;
+radius_vs_corner = [radius', number_corners'];
+radius_vs_corner = sortrows(radius_vs_corner,1);
+plot(radius_vs_corner(:,1),radius_vs_corner(:,2));
+print(image9, '-dtiff', '-r300', 'radius_vs_corners.tif');
