@@ -11,8 +11,8 @@ cd(filedir);
 %Folders with images
 tif8_dir =[filedir, '/tifs_8bit'];
 %Folder to save summarised information
-mkdir(filedir,'/Summary_shape');
-sum_dir = [filedir, '/Summary_shape'];
+mkdir(filedir,'/Summary_shape2');
+sum_dir = [filedir, '/Summary_shape2'];
 
 cd(tif8_dir);
 files_tif = dir('*.tif');

@@ -13,7 +13,7 @@ for i=1:counter
     b_cells_rot{i} = b_cells_flip{i} - Center_mat_border;
     b_cells_rot{i} = (R*b_cells_rot{i}')';
     b_cells_rot2{i}(:,1) = b_cells_rot{i}(:,1)*100/MajorAxis(i);
-    b_cells_rot2{i}(:,2) = b_cells_rot{i}(:,2)*100/MinorAxis(i);
+    b_cells_rot2{i}(:,2) = b_cells_rot{i}(:,2)*100/MajorAxis(i);
     
     
     if length(corners{i})>2
@@ -22,7 +22,7 @@ for i=1:counter
             corner_rot{i}(j,:) = Corner_center{i}(j,:) - Center_mat_border2;
             corner_rot{i}(j,:) = (R*corner_rot{i}(j,:)')';
             corner_rot2{i}(j,1) = corner_rot{i}(j,1)*100/MajorAxis(i);
-            corner_rot2{i}(j,2) = corner_rot{i}(j,2)*100/MinorAxis(i);
+            corner_rot2{i}(j,2) = corner_rot{i}(j,2)*100/MajorAxis(i);
             corner_rot2{i}(j,1) = corner_rot2{i}(j,1)*corners_good{i}(j);
             corner_rot2{i}(j,2) = corner_rot2{i}(j,2)*corners_good{i}(j);
         end

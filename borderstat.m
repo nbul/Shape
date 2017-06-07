@@ -1,5 +1,5 @@
 %% Making a distribution
-X = 2; % binning interval
+X = 3; % binning interval
 
 cd(sum_dir);
 distribution = zeros(250,250);
