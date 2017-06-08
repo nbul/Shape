@@ -1,7 +1,7 @@
 %% Corner distribution
 X2 = 3; % binning interval for corners
 
-image6 = figure;
+image7 = figure;
 corner_rot2=corner_rot2(~cellfun(@isempty, corner_rot2));
 for ll=1:length(corner_rot2)
     if corner_rot2{ll}
@@ -11,7 +11,7 @@ for ll=1:length(corner_rot2)
 end
 hold off
 
-print(image6, '-dtiff', '-r300', 'all_corners.tif');
+print(image7, '-dtiff', '-r300', 'all_corners.tif');
 
 %% Distance and angle for each corner
 corner_angle = zeros(1,1);
@@ -42,9 +42,12 @@ for j=X2:X2:360
         end
     end
 end
-image7=figure;
-plot(X2:X2:360,number_corners);
-print(image7, '-dtiff', '-r300', 'number_corners.tif');
+image8=figure;
+plot(X2:X2:360,number_corners, 'LineWidth', 2);
+set(gca,'FontSize',18);
+ylim([0 max(number_corners)*1.1]);
+xlim([0 400]);
+print(image8, '-dtiff', '-r300', 'number_corners.tif');
 
 %% Distance of corners by angleN= zeros(360, 100);
 curve_corners = struct([]);
@@ -70,13 +73,29 @@ for i=X2:X2:360
     sigma1_corners(i/X2) = sqrt(curve_corners{i/X2}.c1*curve_corners{i/X2}.c1/2);
     pvalue_corners(i/X2) = gof_corners{i/X2}.rsquare;
 end
-image8=figure;
-cd(sum_dir);
-plot(X2:X2:360, radius_corners);
-print(image8, '-dtiff', '-r300', 'corners_radius.tif');
-
+%% Radius of corners circle - radius_corners
 image9=figure;
+cd(sum_dir);
+plot(X2:X2:360, radius_corners, 'LineWidth', 2);
+set(gca,'FontSize',18);
+ylim([0 max(radius_corners)*1.1]);
+xlim([0 400]);
+print(image9, '-dtiff', '-r300', 'corners_radius.tif');
+%% Number of corners as a function of radius
+image10=figure;
 radius_vs_corner = [radius', number_corners'];
 radius_vs_corner = sortrows(radius_vs_corner,1);
-plot(radius_vs_corner(:,1),radius_vs_corner(:,2));
-print(image9, '-dtiff', '-r300', 'radius_vs_corners.tif');
+[f_rc,gof_rc] = fit(radius_vs_corner(:,1),radius_vs_corner(:,2),'exp1');
+
+number_corners_fit = f_rc.a*exp(f_rc.b*(min(radius_vs_corner(:,1)-1):1:(max(radius_vs_corner(:,1))+1)));
+plot((min(radius_vs_corner(:,1)-1):1:(max(radius_vs_corner(:,1))+1)),number_corners_fit, 'r', 'LineWidth',2);
+hold on;
+scatter(radius_vs_corner(:,1),radius_vs_corner(:,2), 'b');
+set(gca,'FontSize',18);
+ylim([0 max(radius_vs_corner(:,2))*1.1]);
+xlim([0 max(radius_vs_corner(:,1))*1.1]);
+hold on
+annotation('textbox',[.2 .8 .0 .0],'String',{['R_s_q_u_a_r_e = ', num2str(gof_rc.rsquare)],...
+    ['f = ', num2str(f_rc.a), ' * exp(', num2str(f_rc.b), ' * x)'] },'FitBoxToText','on','FontSize', 14);
+hold off;
+print(image10, '-dtiff', '-r300', 'radius_vs_corners.tif');
