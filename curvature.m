@@ -56,6 +56,5 @@ annotation('textbox',[.2 .8 .0 .0],'String',{['R_s_q_u_a_r_e = ', num2str(gof_kc
 hold off;
 print(image12, '-dtiff', '-r300', 'curvatureL_vs_corners.tif');
 
-print(image12, '-dtiff', '-r300', 'curvature2_vs_corners.tif');
 
 
