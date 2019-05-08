@@ -23,6 +23,10 @@ Circularity = zeros(1,1);
 Solidity = zeros(1,1);
 Ecc = zeros(1,1);
 AR = zeros(1,1);
+MeanTheta = zeros(1,1);
+MinTheta = zeros(1,1);
+MaxTheta = zeros(1,1);
+NumTheta = zeros(1,1);
 cd(tif8_dir);
 files_tif = dir('*.tif');
 counter = 0;
@@ -83,18 +87,41 @@ for g=1:numel(files_tif)
                 ThetaInDegrees{counter}(t-1) = acosd(dot(u, v) / norm(u) / norm(v)); %atan2d(u(1)*v(2)-u(2)*v(1),u(1)*u(2)+v(1)*v(2));
             end
             ThetaInDegrees{counter}(ThetaInDegrees{counter}>150) = [];
+            MeanTheta(counter) = mean(ThetaInDegrees{counter});
+            MinTheta(counter) = min(ThetaInDegrees{counter});
+            MaxTheta(counter) = max(ThetaInDegrees{counter});
+            NumTheta(counter) = length(ThetaInDegrees{counter});
         end
     end
     
 end
 
-all = [Area', Perimeter', MeanBD', MaxBD', Major', Minor', Circularity', Solidity', Ecc', AR'];
+all = [Area', Perimeter', MeanBD', MaxBD', Major', Minor', Circularity',...
+    Solidity', Ecc', AR', MeanTheta', MinTheta',  MaxTheta', NumTheta'];
 
 [R, P] = corrcoef(all);
 
 
 all2 = array2table(all);
 all2.Properties.VariableNames = {'Area', 'Perimeter', 'MeanBD', 'MaxBD', 'MajorAxis',...
-    'Minor', 'Circularity', 'Solidity', 'Ecc', 'AR'};
+    'Minor', 'Circularity', 'Solidity', 'Ecc', 'AR',...
+    'MeanTheta', 'MinTheta', 'MaxTheta', 'NumTheta'};
 corrplot(all2);
 cd(currdir);
+
+all3 = [Area', Perimeter',Minor', Circularity',...
+    Solidity', AR', MeanTheta', MinTheta',  MaxTheta', NumTheta'];
+
+
+Y = pdist(all,'cityblock');
+Z = linkage(Y,'average');
+c = cophenet(Z,Y);
+T = cluster(Z,'maxclust',3);
+
+
+figure;
+color = ['r','g','b','k','m'];
+for b = 1:5
+scatter3(all3(T==b,1),all3(T==b,2),all3(T==b,6),color(b))
+hold on
+end
