@@ -11,7 +11,7 @@ I4 = imdilate(I4, strel('diamond', 3));
 I2 = I2 - I4;
 I2(I2<0) = 0;
 
-for i=2:(im_y-1)
+for i=2:(im_x-1)
     k = false;
     j = 0;
     while k==false
@@ -19,11 +19,11 @@ for i=2:(im_y-1)
         if I2(i,j) == 1
             I2(i,j) = 0;
             k = true;
-        elseif j== im_x
+        elseif j== im_y
             k = true;
         end
     end
-    j = im_x;
+    j = im_y;
     k= false;
     while k==false
         j= j-1;
