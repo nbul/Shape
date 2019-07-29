@@ -85,27 +85,41 @@ for g=1:numel(files_tif)
     B_angle2 = zeros(1,1);
     
      for l=1:numel(B)
-         if sum(A(:,l)) > 0
-             Itemp = imdilate(poly2mask(B{l}(:,2),B{l}(:,1),im_x,im_y), strel('diamond', 1));
-             I2 = I .* Itemp;
-             I2 = bwareaopen(I2,100);
-             [B2,L2, N2, A2] = bwboundaries(I2,'holes');
-             im_cells_data=regionprops(L2,'Centroid', 'Area', 'Eccentricity','ConvexArea',...
-                 'MajorAxisLength', 'MinorAxisLength','Perimeter', 'Solidity','PixelList','Orientation');
-             
-             
-             celldata;
-             
-             cleanborder;
-             
-             Borders = bwconncomp(I3);
-             im_borders_data=regionprops(Borders,'PixelList', 'Perimeter');
-             V3 = imdilate(V, strel('diamond', 7));
-             Overlap = V3 .* I3;
-             
-             borderdata;
+        if sum(A(:,l)) > 0
+            Itemp = imdilate(poly2mask(B{l}(:,2),B{l}(:,1),im_x,im_y), strel('diamond', 1));
+            I2 = I .* Itemp;
+            I2 = bwareaopen(I2,100);
+            [B2,L2, N2, A2] = bwboundaries(I2,'holes');
+            im_cells_data=regionprops(L2,'Centroid', 'Area', 'Eccentricity','ConvexArea',...
+                'MajorAxisLength', 'MinorAxisLength','Perimeter', 'Solidity','PixelList','Orientation');
+            
+            
+            celldata;
+
         end
      end
+    
+    Orient2(Orient2<0) = 180 + Orient2(Orient2<0);
+    for l=1:numel(B)
+        if sum(A(:,l)) > 0
+            Itemp = imdilate(poly2mask(B{l}(:,2),B{l}(:,1),im_x,im_y), strel('diamond', 1));
+            I2 = I .* Itemp;
+            I2 = bwareaopen(I2,100);
+            [B2,L2, N2, A2] = bwboundaries(I2,'holes');
+            
+            cleanborder;
+            
+            Borders = bwconncomp(I3);
+            im_borders_data=regionprops(Borders,'PixelList', 'Perimeter');
+            V3 = imdilate(V, strel('diamond', 7));            
+            Overlap = V3 .* I3;
+            
+            borderdata;
+            
+            
+        end
+    end
+    
     byembryodata;
     
 end

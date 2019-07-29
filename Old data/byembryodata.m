@@ -21,7 +21,7 @@ byembryo(g,18) = std(Ecc2);
 byembryo(g,19) = mean(AR2);
 byembryo(g,20) = std(AR2);
 
-Orient2(Orient2<0) = 180 + Orient2(Orient2<0);
+
 DEV = abs(Orient2 - mean(Orient2));
 Orient = [Orient; DEV'];
 byembryo(g,21) = mean(Orient2);
