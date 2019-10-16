@@ -21,9 +21,9 @@ files_tif = dir('*.tif');
 vert2 = zeros(1,2);
 pulled_data = zeros(1,5);
 pulled_vertices = zeros(1,3);
-averagedata = zeros(1,7);
-se90V = strel('line', 10, 90);
-se0V = strel('line', 10, 0);
+averagedata = zeros(1,8);
+se90V = strel('line', 6, 90);
+se0V = strel('line', 6, 0);
 
 
 for g=1:numel(files_tif)
@@ -44,7 +44,7 @@ for g=1:numel(files_tif)
     V(:,end) = 0;
     V(1,:) = 0;
     V(end,:) = 0;
-    V2 = imdilate(V,strel('disk', 10));
+    V2 = imdilate(V,strel('disk', 8));
     V2 = imclearborder(V2);
     
     %% Cell shape from regionprops
@@ -100,8 +100,9 @@ for g=1:numel(files_tif)
     pulled_vertices = [pulled_vertices; [ones(counter2,1)*g,(1:counter2)',vert']];
     
     averagedata(g,1) = g;
-    averagedata(g,2:2:end) = mean(dataT{:,2:end},1);
-    averagedata(g,3:2:end) = std(dataT{:,2:end},1);
+    averagedata(g,2:2:end-1) = mean(dataT{:,2:end},1);
+    averagedata(g,3:2:end-1) = std(dataT{:,2:end},1);
+    averagedata(g,end) = counter;
 end
 
 cd(sum_dir);
@@ -118,7 +119,7 @@ writetable(T2,'pulled_vertices.csv');
 
 T3 = array2table(averagedata);
 T3.Properties.VariableNames = {'embryo','area','areaSD',...
-    'eccentricity', 'eccentricitySD', 'AR', 'ARSD'};
+    'eccentricity', 'eccentricitySD', 'AR', 'ARSD','cells'};
 writetable(T3,'average_cell_shape.csv');
 
 HistV = table({'3';'4';'rosettes'}, [sum(pulled_vertices(:,3)==3);...
