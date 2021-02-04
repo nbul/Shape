@@ -30,6 +30,14 @@ ThetaInDegrees = struct([]);
 
 byembryo = zeros(numel(files_tif),5);
 all = zeros(1,2);
+byembryoAR = zeros(numel(files_tif),5);
+allAR = zeros(1,2);
+
+byembryoout = zeros(numel(files_tif),5);
+allout = zeros(1,2);
+byembryooutAR = zeros(numel(files_tif),5);
+alloutAR = zeros(1,2);
+
 for g=1:numel(files_tif)
 
     bd_dir = [tif8_dir,'/', num2str(g)];
@@ -77,6 +85,8 @@ for g=1:numel(files_tif)
     end
     
     [Ecc_clean, TF] = rmoutliers(Ecc');
+    AR = 1 ./ sqrt(1 - Ecc_clean .* Ecc_clean);
+    ARout = 1 ./ sqrt(1 - Ecc' .* Ecc');
     counter = 0;
     for l=1:numel(B)
         if sum(A(:,l)) > 0
@@ -103,12 +113,13 @@ for g=1:numel(files_tif)
         end
     end
     
-    byembryo(g,1) = g;
-    byembryo(g,2) = mean(Ecc_clean);
-    byembryo(g,3) = std(Ecc_clean);
-    byembryo(g,4) = length(Ecc_clean);
-    byembryo(g,5) = sum(TF);
+    byembryo(g,:) = [g, mean(Ecc_clean),std(Ecc_clean),length(Ecc_clean),sum(TF)];
+    byembryoout(g,:) = [g, mean(Ecc),std(Ecc),length(Ecc),sum(TF)];
+    byembryoAR(g,:) = [g, mean(AR),std(AR),length(Ecc_clean),sum(TF)];
+    byembryooutAR(g,:) = [g, mean(ARout),std(ARout),length(Ecc),sum(TF)];
+    
     all = [all; [ones(length(Ecc_clean),1) * g, Ecc_clean]]; %#ok<AGROW>
+    allAR = [allAR; [ones(length(Ecc_clean),1) * g, AR]]; %#ok<AGROW>
     cd(cell_dir);
     image_filename = [num2str(g),'_analysed_image.tif'];
     print(image1, '-dtiff', '-r150', image_filename);
@@ -117,18 +128,37 @@ for g=1:numel(files_tif)
 end
 
 all(1,:) = [];
+allAR(1,:) = [];
 
 all2 = array2table(all);
 all2.Properties.VariableNames = {'Embryo', 'Eccentricity'};
 
+all3 = array2table(allAR);
+all3.Properties.VariableNames = {'Embryo', 'Eccentricity'};
+
 byembryo2 = array2table(byembryo);
 byembryo2.Properties.VariableNames = {'embryo', 'Eccentricity', 'SD',...
+    'Number_cells', 'Number_outliers'};
+
+byembryo3 = array2table(byembryoAR);
+byembryo3.Properties.VariableNames = {'embryo', 'Eccentricity', 'SD',...
+    'Number_cells', 'Number_outliers'};
+
+byembryo4 = array2table(byembryoout);
+byembryo4.Properties.VariableNames = {'embryo', 'Eccentricity', 'SD',...
+    'Number_cells', 'Number_outliers'};
+byembryo5 = array2table(byembryooutAR);
+byembryo5.Properties.VariableNames = {'embryo', 'Eccentricity', 'SD',...
     'Number_cells', 'Number_outliers'};
 
 
 cd(sum_dir);
 writetable(all2,'cells.csv');
 writetable(byembryo2,'embryos.csv');
+writetable(all3,'cellsAR.csv');
+writetable(byembryo3,'embryosAR.csv');
+writetable(byembryo4,'embryos_noout.csv');
+writetable(byembryo5,'embryosAR_noout.csv');
 cd(currdir);
 
 close all;
